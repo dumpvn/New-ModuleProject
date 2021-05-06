@@ -49,8 +49,10 @@ Script for easily creating a new module projects folder
 Script which quickly creates a folder structure, Module Manifest and downloads a build.ps1 script
 to use with Invoke-Build module for easy developing, maintaining, building and publishing your
 powershell module.
+Follow project at: https://github.com/ScriptingChris/New-ModuleProject
+For in-depth help: https://scriptingchris.tech/new-moduleproject_ps1/
 .EXAMPLE
-PS C:\> New-ModuleProject.ps1 -Path ".\" -ModuleName "MyTestModuel" -Prerequisites -Initialize -Scripts
+PS C:\> New-ModuleProject.ps1 -Path ".\" -ModuleName "MyTestModule" -Prerequisites -Initialize -Scripts
 
 This script will create a new folder structure in the path: ".\"
 It will create the following folder structure:
@@ -67,7 +69,7 @@ MyTestModule\
 
 It will then make sure you have to follwoing modules installed:
 - PowerSehllGet (For publishing modules)
-- PlatyPS (For managin Help documentation)
+- PlatyPS (For managing Help documentation)
 - Pester (For Unit Testing)
 - PSScriptAnalyzer (For Lint analyzing scripts)
 - InvokeBuild (For building the module)
@@ -104,9 +106,9 @@ N/A
 Param(
     [Parameter(Mandatory=$True)][String]$Path,
     [Parameter(Mandatory=$True)][String]$ModuleName,
-    [Parameter(Mandatory=$True)][Switch]$Prerequisites,
-    [Parameter(Mandatory=$True)][Switch]$Initialize,
-    [Parameter(Mandatory=$True)][Switch]$Scripts
+    [Parameter(Mandatory=$false)][Switch]$Prerequisites,
+    [Parameter(Mandatory=$true)][Switch]$Initialize,
+    [Parameter(Mandatory=$false)][Switch]$Scripts
 )
 
 #Region - Prerequisites
