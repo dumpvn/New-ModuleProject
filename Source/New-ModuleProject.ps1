@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 
-0.0.1
+1.0.0
 
 .GUID 
 55ef3a83-4365-4e5e-844b-6ab2d323963b
@@ -38,9 +38,10 @@ SOFTWARE.
 module project build
 
 .LICENSEURI 
+https://scriptingchris.tech/new-moduleproject_ps1/
 
 .PROJECTURI
-https://scriptingchris.tech
+https://github.com/ScriptingChris/New-ModuleProject
 
 .ICONURI
 N/A
@@ -56,22 +57,67 @@ N/A
 
 .RELEASENOTES
 First deployment of the script
+
+Help documentation and use cases for the Script can be found here:
+https://scriptingchris.tech/new-moduleproject_ps1/
 #>
 
 <# 
 .SYNOPSIS
-Short description
+Script for easily creating a new module projects folder
 .DESCRIPTION
-Script for initiating a new powershell module project
+Script which quickly creates a folder structure, Module Manifest and downloads a build.ps1 script
+to use with Invoke-Build module for easy developing, maintaining, building and publishing your
+powershell module.
 .EXAMPLE
-PS C:\> <example usage>
-Explanation of what the example does
+PS C:\> New-ModuleProject.ps1 -Path ".\" -ModuleName "MyTestModuel" -Prerequisites -Initialize -Scripts
+
+This script will create a new folder structure in the path: ".\"
+It will create the following folder structure:
+
+MyTestModule\
+    |_Docs\
+    |_Output\
+    |_Source\
+    |   |_Public\
+    |   |_Private\
+    |   |_MyTestModule.psd1
+    |_Tests\
+    |_build.ps1
+
+It will then make sure you have to follwoing modules installed:
+- PowerSehllGet (For publishing modules)
+- PlatyPS (For managin Help documentation)
+- Pester (For Unit Testing)
+- PSScriptAnalyzer (For Lint analyzing scripts)
+- InvokeBuild (For building the module)
+
+It will then download the build.ps1 script from the GitHub repository
+https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1
+
+The build script will be used for testing, building and publishing the module.
+Help to use the build script can be found here: https://scriptingchris.tech/new-moduleproject_ps1/
+.PARAMETER Path
+Provide the Path to where the module should be placed (without the module name itself)
+.PARAMETER ModuleName
+Provice the name of your module
+.PARAMETER Prerequisites
+Parameter which will tricker installing of several modules:
+- PowerShellGet
+- PlatyPS
+- Pester
+- InvokeBuild
+.PARAMETER Initialize
+Parameter which will tricker the creation of the Module folder structure.
+.PARAMETER Scripts
+Parameter which will tricker the download of the default build script from:
+https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1
 .INPUTS
-Inputs (if any)
+N/A
 .OUTPUTS
-Output (if any)
+N/A
 .NOTES
-General notes
+N/A
 #>
 
 
@@ -83,40 +129,14 @@ Param(
     [Parameter(Mandatory=$True)][Switch]$Scripts
 )
 
-
-
-
-<#
-# Todo 
-    * Prerequisites (SECTION)
-        - Download and configure module: psake
-        - Download and configure module: platyPS
-        - Download and configure module: Pester
-        - Download and configure module: PSScriptAnalyzer
-
-    * Initialize (SECTION)
-        - Create the folder structure:
-            ModuleName
-                |_Source
-                |   |_Private
-                |   |   |_PrivateFunction.ps1
-                |   |_Public
-                |   |   |_PublicFunction.ps1
-                |   |_ModuleName.psd1
-                |_Tests
-                |_Docs
-                |_Output
-                |_build.ps1
-
-    * Build (SECTION)
-        - Generate the standard psake build scripts
-
-    * WHATIF?
-#>
-
-
 #Region - Prerequisites
 if($Prerequisites.IsPresent){
+    Write-Verbose -Message "Initializing Module PowerSehllGet"
+    if (-not(Get-Module -Name PowerShellGet -ListAvailable)){
+        Write-Warning "Module 'PowerShellGet' is missing or out of date. Installing module now."
+        Install-Module -Name PowerShellGet -Scope CurrentUser -Force
+    }
+
     Write-Verbose -Message "Initializing Module PSScriptAnalyzer"
     if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)){
         Write-Warning "Module 'PSScriptAnalyzer' is missing or out of date. Installing module now."
