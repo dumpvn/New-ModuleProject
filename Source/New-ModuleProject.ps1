@@ -75,7 +75,13 @@ General notes
 #>
 
 
-Param()
+Param(
+    [Parameter(Mandatory=$True)][String]$Path,
+    [Parameter(Mandatory=$True)][String]$ModuleName,
+    [Parameter(Mandatory=$True)][Switch]$Prerequisites,
+    [Parameter(Mandatory=$True)][Switch]$Initialize,
+    [Parameter(Mandatory=$True)][Switch]$Scripts
+)
 
 
 
