@@ -44,16 +44,16 @@ https://scriptingchris.tech/new-moduleproject_ps1/
 https://github.com/ScriptingChris/New-ModuleProject
 
 .ICONURI
-N/A
+
 
 .EXTERNALMODULEDEPENDENCIES
-N/A
+
 
 .REQUIREDSCRIPTS
-N/A
+
 
 .EXTERNALSCRIPTDEPENDENCIES 
-N/A
+
 
 .RELEASENOTES
 First deployment of the script
