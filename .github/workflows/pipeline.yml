@@ -23,11 +23,11 @@ jobs:
         uses: microsoft/psscriptanalyzer-action@v1.0
         with:
           # Specifies the path to the scripts or module to be analyzed. Wildcard characters are supported.
-          path: .\Source\
+          path: .\
 
   build:
     # The type of runner that the job will run on
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -39,6 +39,6 @@ jobs:
         uses: jcwillox/action-publish-powershell-script@v1.0.1
         with:
           name: New-ModuleProject.ps1
-          path: .\Source\New-ModuleProject.ps1
+          path: ./Source/New-ModuleProject.ps1
           nuget_api_key: ${{ secrets.NUGETAPIKEY }}
       
