@@ -145,11 +145,10 @@ task Build -if($Configuration -eq "Release"){
     $Script:ModuleName = (Test-ModuleManifest -Path ".\Source\*.psd1").Name
     Write-Verbose $ModuleName
     if(Test-Path ".\Output\$($ModuleName)") {
-        Write-Verbose -Message "Output temp folder does exist, continuing build."
-
+        Write-Verbose -Message "Output folder does exist, continuing build."
     }
     else {
-        Write-Verbose -Message "Output temp folder does not exist. Creating it now"
+        Write-Verbose -Message "Output folder does not exist. Creating it now"
         New-Item -Path ".\Output\$($ModuleName)" -ItemType Directory -Force
     }
 
@@ -277,7 +276,7 @@ task Publish -if($Configuration -eq "Release"){
         }
     }
     else {
-        Write-Warning -Message "Something went wrong, couldn't publish module to PSGallery"
+        Write-Warning -Message "Something went wrong, couldn't publish module to PSGallery. Did you provide a NugetKey?."
     }
 }
 
