@@ -144,13 +144,13 @@ task DebugBuild -if ($Configuration -eq "debug") {
 task Build -if($Configuration -eq "Release"){
     $Script:ModuleName = (Test-ModuleManifest -Path ".\Source\*.psd1").Name
     Write-Verbose $ModuleName
-    if(Test-Path ".\Output\temp\$($ModuleName)") {
+    if(Test-Path ".\Output\$($ModuleName)") {
         Write-Verbose -Message "Output temp folder does exist, continuing build."
 
     }
     else {
         Write-Verbose -Message "Output temp folder does not exist. Creating it now"
-        New-Item -Path ".\Output\temp\$($ModuleName)" -ItemType Directory -Force
+        New-Item -Path ".\Output\$($ModuleName)" -ItemType Directory -Force
     }
 
     if(!($ModuleVersion)) {
@@ -160,26 +160,26 @@ task Build -if($Configuration -eq "Release"){
         Write-Verbose "ModuleVersion found from psd file: $ModuleVersion"
     }
 
-    if(Test-Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)"){
-        Write-Warning -Message "Version: $($ModuleVersion) - folder was detected in .\Output\temp\$($ModuleName). Removing old temp folder."
-        Remove-Item ".\Output\temp\$($ModuleName)\$($ModuleVersion)" -Recurse -Force
+    if(Test-Path ".\Output\$($ModuleName)\$($ModuleVersion)"){
+        Write-Warning -Message "Version: $($ModuleVersion) - folder was detected in .\Output\$($ModuleName). Removing old temp folder."
+        Remove-Item ".\Output\$($ModuleName)\$($ModuleVersion)" -Recurse -Force
     }
 
-    Write-Verbose -Message "Creating new temp module version folder: .\Output\temp\$($ModuleName)\$($ModuleVersion)."
+    Write-Verbose -Message "Creating new temp module version folder: .\Output\$($ModuleName)\$($ModuleVersion)."
     try {
-        New-Item -Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)" -ItemType Directory
+        New-Item -Path ".\Output\$($ModuleName)\$($ModuleVersion)" -ItemType Directory
     }
     catch {
-        throw "Failed creating the new temp module folder: .\Output\temp\$($ModuleName)\$($ModuleVersion)"
+        throw "Failed creating the new temp module folder: .\Output\$($ModuleName)\$($ModuleVersion)"
     }
 
     Write-Verbose -Message "Generating the Module Manifest for temp build and generating new Module File"
     try {
-        Copy-Item -Path ".\Source\$($ModuleName).psd1" -Destination ".\Output\temp\$($ModuleName)\$ModuleVersion\"
-        New-Item -Path ".\Output\temp\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1" -ItemType File
+        Copy-Item -Path ".\Source\$($ModuleName).psd1" -Destination ".\Output\$($ModuleName)\$ModuleVersion\"
+        New-Item -Path ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1" -ItemType File
     }
     catch {
-        throw "Failed copying Module Manifest from: .\Source\$($ModuleName).psd1 to .\Output\temp\$($ModuleName)\$ModuleVersion\ or Generating the new psm file."
+        throw "Failed copying Module Manifest from: .\Source\$($ModuleName).psd1 to .\Output\$($ModuleName)\$ModuleVersion\ or Generating the new psm file."
     }
 
     Write-Verbose -Message "Updating Module Manifest with Public Functions"
@@ -192,12 +192,12 @@ task Build -if($Configuration -eq "Release"){
             write-Verbose -Message "Exporting function: $(($function.split('.')[0]).ToString())"
             $functionsToExport.Add(($function.split('.')[0]).ToString())
         }
-        Update-ModuleManifest -Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psd1" -FunctionsToExport $functionsToExport
+        Update-ModuleManifest -Path ".\Output\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psd1" -FunctionsToExport $functionsToExport
     }
     catch {
         throw "Failed updating Module manifest with public functions"
     }
-    $ModuleFile = ".\Output\temp\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psm1"
+    $ModuleFile = ".\Output\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psm1"
     Write-Verbose -Message "Building the .psm1 file"
     Write-Verbose -Message "Appending Public Functions"
     Add-Content -Path $ModuleFile -Value "### --- PUBLIC FUNCTIONS --- ###"
