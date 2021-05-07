@@ -129,10 +129,9 @@ task DebugBuild -if ($Configuration -eq "debug") {
     foreach($function in $privateFunctions.Name){
         try {
             Write-Verbose -Message "Updating the .psm1 file with function: $($function)"
-            $content = Get-Content -Path ".\Source\Public\$($function)"
+            $content = Get-Content -Path ".\Source\Private\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
@@ -154,9 +153,16 @@ task Build -if($Configuration -eq "Release"){
 
     if(!($ModuleVersion)) {
         Write-Verbose -Message "No new ModuleVersion was provided, locating existing version from psd file."
-        $ModuleVersion = (Test-ModuleManifest -Path ".\Source\$($ModuleName).psd1").Version
-        $Script:ModuleVersion = "$($ModuleVersion.Major).$($ModuleVersion.Minor).$($ModuleVersion.Build)"
-        Write-Verbose "ModuleVersion found from psd file: $ModuleVersion"
+        $oldModuleVersion = (Test-ModuleManifest -Path ".\Source\$($ModuleName).psd1").Version
+
+        $publicFunctions = Get-ChildItem -Path ".\Source\Public\*.ps1"
+        $privateFunctions = Get-ChildItem -Path ".\Source\Private\*.ps1"
+        $totalFunctions = $publicFunctions.count + $privateFunctions.count
+        $ModuleBuildNumber = $oldModuleVersion.Build + 1
+        Write-Verbose -Message "Updating the Moduleversion"
+        $Script:ModuleVersion = "$($oldModuleVersion.Major).$($totalFunctions).$($ModuleBuildNumber)"
+        Write-Verbose "Mew ModuleVersion: $ModuleVersion"
+        Update-ModuleManifest -Path ".\Source\$($ModuleName).psd1" -ModuleVersion $ModuleVersion
     }
 
     if(Test-Path ".\Output\$($ModuleName)\$($ModuleVersion)"){
@@ -182,8 +188,6 @@ task Build -if($Configuration -eq "Release"){
     }
 
     Write-Verbose -Message "Updating Module Manifest with Public Functions"
-    $publicFunctions = Get-ChildItem -Path ".\Source\Public\*.ps1"
-    $privateFunctions = Get-ChildItem -Path ".\Source\Private\*.ps1"
     try {
         Write-Verbose -Message "Appending Public functions to the psm file"
         $functionsToExport = New-Object -TypeName System.Collections.ArrayList
@@ -219,10 +223,9 @@ task Build -if($Configuration -eq "Release"){
     foreach($function in $privateFunctions.Name){
         try {
             Write-Verbose -Message "Updating the .psm1 file with function: $($function)"
-            $content = Get-Content -Path ".\Source\Public\$($function)"
+            $content = Get-Content -Path ".\Source\Private\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
@@ -264,12 +267,12 @@ task Clean -if($Configuration -eq "Release") {
 task Publish -if($Configuration -eq "Release"){
 
     Write-Verbose -Message "Publishing Module to PowerShell gallery"
-    Write-Verbose -Message "Importing Module"
+    Write-Verbose -Message "Importing Module .\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
     Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
     If((Get-Module -Name $ModuleName) -and ($NugetAPIKey)) {
         try {
             write-Verbose -Message "Publishing Module: $($ModuleName)"
-            Publish-Module -Name $ModuleName-NuGetApiKey $NugetAPIKey
+            Publish-Module -Name $ModuleName -NuGetApiKey $NugetAPIKey
         }
         catch {
             throw "Failed publishing module to PowerShell Gallery"
