@@ -138,9 +138,9 @@ if($Prerequisites.IsPresent){
     }
 
     Write-Verbose -Message "Initializing InvokeBuild"
-    if (-not(Get-Module -Name psake -ListAvailable)){
-        Write-Warning "Module 'psake' is missing or out of date. Installing module now."
-        Install-Module -Name psake -Scope CurrentUser -Force
+    if (-not(Get-Module -Name InvokeBuild -ListAvailable)){
+        Write-Warning "Module 'InvokeBuild' is missing or out of date. Installing module now."
+        Install-Module -Name InvokeBuild -Scope CurrentUser -Force
     }
 }
 #EndRegion - Prerequisites
