@@ -171,6 +171,10 @@ task Build -if($Configuration -eq "Release"){
     }
 
     Write-Verbose -Message "Creating new temp module version folder: .\Output\$($ModuleName)\$($ModuleVersion)."
+    if(Test-Path ".\Output\$($ModuleName)"){
+        Write-Verbose -Message "Detected old folder, removing it from output folder"
+        Remove-Item -Path ".\Output\$($ModuleName)" -Recurse -Force
+    }
     try {
         New-Item -Path ".\Output\$($ModuleName)\$($ModuleVersion)" -ItemType Directory
     }
