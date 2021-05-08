@@ -116,7 +116,14 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "Alias"
+            if($Sel){
+                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            }
+            else {
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            }
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
@@ -176,6 +183,7 @@ task Build -if($Configuration -eq "Release"){
         Remove-Item -Path ".\Output\$($ModuleName)" -Recurse -Force
     }
     try {
+        
         New-Item -Path ".\Output\$($ModuleName)\$($ModuleVersion)" -ItemType Directory
     }
     catch {
@@ -214,7 +222,13 @@ task Build -if($Configuration -eq "Release"){
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            if($Sel){
+                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            }
+            else {
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            }
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
