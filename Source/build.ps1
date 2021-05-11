@@ -116,7 +116,14 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "Alias"
+            if($Sel){
+                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            }
+            else {
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            }
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
@@ -176,6 +183,7 @@ task Build -if($Configuration -eq "Release"){
         Remove-Item -Path ".\Output\$($ModuleName)" -Recurse -Force
     }
     try {
+        
         New-Item -Path ".\Output\$($ModuleName)\$($ModuleVersion)" -ItemType Directory
     }
     catch {
@@ -214,7 +222,13 @@ task Build -if($Configuration -eq "Release"){
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            if($Sel){
+                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            }
+            else {
+                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+            }
             Add-Content -Path $ModuleFile -Value "#EndRegion - $function"            
         }
         catch {
@@ -246,18 +260,30 @@ task Build -if($Configuration -eq "Release"){
     catch {
         throw "Failed importing the module: $($ModuleName)"
     }
-    if(!(Get-ChildItem -Path ".\Docs")) {
-        If(Get-Module -Name $ModuleName) {
+
+    if(!(Get-ChildItem -Path ".\Docs")){
+        Write-Verbose -Message "Docs folder is empty, generating new fiiles"
+        if(Get-Module -Name $($ModuleName)) {
+            Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
+            New-MarkdownHelp -Module $ModuleName -OutputFolder ".\Docs"
+            New-MarkdownAboutHelp -OutputFolder ".\Docs" -AboutName $ModuleName
+            New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
+        }
+        else {
+            throw "Module is not imported, cannot generate help files"
+        }
+    }
+    else {
+        Write-Verbose -Message "Removing old Help files, to generate new files."
+        Remove-Item -Path ".\Docs\*.*" -Exclude "about_*"
+        if(Get-Module -Name $($ModuleName)) {
+            Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
             New-MarkdownHelp -Module $ModuleName -OutputFolder ".\Docs"
             New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
         }
     }
-    else {
-        If(Get-Module -Name $ModuleName) {
-            Update-MarkdownHelp ".\Docs"
-            New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
-        }
-    }
+
+
 }
 
 
