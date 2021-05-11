@@ -37,6 +37,8 @@ https://github.com/ScriptingChris/New-ModuleProject
 
 .RELEASENOTES
 Created a lot of bug fixes to the build.ps1 script.
+Added the the process of exporting aliases from the public functions aswell
+
 
 Help documentation and use cases for the Script can be found here:
 https://scriptingchris.tech/new-moduleproject_ps1/
@@ -138,9 +140,9 @@ if($Prerequisites.IsPresent){
     }
 
     Write-Verbose -Message "Initializing InvokeBuild"
-    if (-not(Get-Module -Name psake -ListAvailable)){
-        Write-Warning "Module 'psake' is missing or out of date. Installing module now."
-        Install-Module -Name psake -Scope CurrentUser -Force
+    if (-not(Get-Module -Name InvokeBuild -ListAvailable)){
+        Write-Warning "Module 'InvokeBuild' is missing or out of date. Installing module now."
+        Install-Module -Name InvokeBuild -Scope CurrentUser -Force
     }
 }
 #EndRegion - Prerequisites
