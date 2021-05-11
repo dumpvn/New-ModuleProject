@@ -5,7 +5,6 @@ param (
 )
 
 task Init {
-    #Todo - Initializing build sequence with modules and dependencies
     Write-Verbose -Message "Initializing Module PSScriptAnalyzer"
     if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)){
         Write-Warning "Module 'PSScriptAnalyzer' is missing or out of date. Installing module now."
@@ -32,8 +31,6 @@ task Init {
 }
 
 task Test {
-
-    #Todo running PSScriptAnalyzer and Pester tests
     try {
         Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
         Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
