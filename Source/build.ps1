@@ -260,18 +260,30 @@ task Build -if($Configuration -eq "Release"){
     catch {
         throw "Failed importing the module: $($ModuleName)"
     }
-    if(!(Get-ChildItem -Path ".\Docs")) {
-        If(Get-Module -Name $ModuleName) {
+
+    if(!(Get-ChildItem -Path ".\Docs")){
+        Write-Verbose -Message "Docs folder is empty, generating new fiiles"
+        if(Get-Module -Name $($ModuleName)) {
+            Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
+            New-MarkdownHelp -Module $ModuleName -OutputFolder ".\Docs"
+            New-MarkdownAboutHelp -OutputFolder ".\Docs" -AboutName $ModuleName
+            New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
+        }
+        else {
+            throw "Module is not imported, cannot generate help files"
+        }
+    }
+    else {
+        Write-Verbose -Message "Removing old Help files, to generate new files."
+        Remove-Item -Path ".\Docs\*.*" -Exclude "about_*"
+        if(Get-Module -Name $($ModuleName)) {
+            Write-Verbose -Message "Module: $($ModuleName) is imported into session, generating Help Files"
             New-MarkdownHelp -Module $ModuleName -OutputFolder ".\Docs"
             New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
         }
     }
-    else {
-        If(Get-Module -Name $ModuleName) {
-            Update-MarkdownHelp ".\Docs"
-            New-ExternalHelp ".\Docs" -OutputPath ".\Output\$($ModuleName)\$($ModuleVersion)\en-US\"
-        }
-    }
+
+
 }
 
 
