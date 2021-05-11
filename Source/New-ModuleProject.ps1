@@ -1,6 +1,6 @@
 <#PSScriptInfo
 .VERSION 
-1.1.5
+1.1.7
 
 .GUID 
 55ef3a83-4365-4e5e-844b-6ab2d323963b
@@ -36,7 +36,9 @@ https://github.com/ScriptingChris/New-ModuleProject
 
 
 .RELEASENOTES
+Created a lot of bug fixes to the build.ps1 script.
 Added the the process of exporting aliases from the public functions aswell
+
 
 Help documentation and use cases for the Script can be found here:
 https://scriptingchris.tech/new-moduleproject_ps1/
