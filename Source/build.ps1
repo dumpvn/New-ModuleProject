@@ -1,10 +1,10 @@
 param (
     [ValidateSet("Release", "debug")]$Configuration = "debug",
-    [Parameter(Mandatory=$false)][String]$NugetAPIKey
+    [Parameter(Mandatory=$false)][String]$NugetAPIKey,
+    [Parameter(Mandatory=$false)][Switch]$ExportAlias
 )
 
 task Init {
-    #Todo - Initializing build sequence with modules and dependencies
     Write-Verbose -Message "Initializing Module PSScriptAnalyzer"
     if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)){
         Write-Warning "Module 'PSScriptAnalyzer' is missing or out of date. Installing module now."
@@ -31,8 +31,6 @@ task Init {
 }
 
 task Test {
-
-    #Todo running PSScriptAnalyzer and Pester tests
     try {
         Write-Verbose -Message "Running PSScriptAnalyzer on Public functions"
         Invoke-ScriptAnalyzer ".\Source\Public" -Recurse
@@ -116,10 +114,22 @@ task DebugBuild -if ($Configuration -eq "debug") {
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "Alias"
-            if($Sel){
-                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
-                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            if($ExportAlias.IsPresent){
+                $AliasSwitch = $false
+                $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0,1
+                $mylist = $Sel.ToString().Split([Environment]::NewLine)
+                foreach($s in $mylist){
+                    if($s -match "Alias"){
+                        $alias = (($s.split(":")[2]).split("(")[1]).split(")")[0]
+                        Write-Verbose -Message "Exporting Alias: $($alias) to Function: $($function)"
+                        Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"
+                        $AliasSwitch = $true
+                    }
+                }
+                if($AliasSwitch -eq $false){
+                    Write-Verbose -Message "No alias was found in function: $($function))"
+                    Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+                }
             }
             else {
                 Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
@@ -222,9 +232,22 @@ task Build -if($Configuration -eq "Release"){
             $content = Get-Content -Path ".\Source\Public\$($function)"
             Add-Content -Path $ModuleFile -Value "#Region - $function"
             Add-Content -Path $ModuleFile -Value $content
-            if($Sel){
-                $alias = ($Sel.Line.split("(")[1]).split(")")[0]
-                Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"    
+            if($ExportAlias.IsPresent){
+                $AliasSwitch = $false
+                $Sel = Select-String -Path ".\Source\Public\$($function)" -Pattern "CmdletBinding" -Context 0,1
+                $mylist = $Sel.ToString().Split([Environment]::NewLine)
+                foreach($s in $mylist){
+                    if($s -match "Alias"){
+                        $alias = (($s.split(":")[2]).split("(")[1]).split(")")[0]
+                        Write-Verbose -Message "Exporting Alias: $($alias) to Function: $($function)"
+                        Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString()) -Alias $alias"
+                        $AliasSwitch = $true
+                    }
+                }
+                if($AliasSwitch -eq $false){
+                    Write-Verbose -Message "No alias was found in function: $($function))"
+                    Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
+                }
             }
             else {
                 Add-Content -Path $ModuleFile -Value "Export-ModuleMember -Function $(($function.split('.')[0]).ToString())"
