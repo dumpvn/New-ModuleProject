@@ -115,7 +115,7 @@ Param(
 
 #Region - Prerequisites
 if($Prerequisites.IsPresent){
-    Write-Verbose -Message "Initializing Module PowerSehllGet"
+    Write-Verbose -Message "Initializing Module PowerShellGet"
     if (-not(Get-Module -Name PowerShellGet -ListAvailable)){
         Write-Warning "Module 'PowerShellGet' is missing or out of date. Installing module now."
         Install-Module -Name PowerShellGet -Scope CurrentUser -Force
@@ -184,15 +184,19 @@ if($Initialize.IsPresent){
 
 #Region - Scripts
 if($Scripts.IsPresent){
-    if(Test-Path "$($Path)\$($ModuleName)"){
+    if(Test-Path "$($Path)\$($ModuleName)") {
         Write-Verbose -Message "Creating the Module Manifest"
         New-ModuleManifest -Path "$($Path)\$($ModuleName)\Source\$($ModuleName).psd1" -ModuleVersion "0.0.1"
     }
 
-    Write-Verbose -Message "Downloading build script from: https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1" -OutFile "$($Path)\$($ModuleName)\build.ps1"
+    # Write-Verbose -Message "Downloading build script from: https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1"
+    # Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1" -OutFile "$($Path)\$($ModuleName)\build.ps1"
+    
+    # dumpvn version has publishing issue fixed
+    Write-Verbose -Message "Downloading build script from: https://raw.githubusercontent.com/dumpvn/New-ModuleProject/main/Source/build.ps1"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dumpvn/New-ModuleProject/main/Source/build.ps1" -OutFile "$($Path)\$($ModuleName)\build.ps1"
 
-    if(Test-Path "$($Path)\$($ModuleName)\build.ps1"){
+    if(Test-Path "$($Path)\$($ModuleName)\build.ps1") {
         Write-Verbose -Message "Build script was downloaded successfully"
     }
     else {

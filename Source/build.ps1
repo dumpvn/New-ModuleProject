@@ -1,29 +1,36 @@
 param (
-    [ValidateSet("Release", "debug")]$Configuration = "debug",
-    [Parameter(Mandatory=$false)][String]$NugetAPIKey,
-    [Parameter(Mandatory=$false)][Switch]$ExportAlias
+    [ValidateSet("Release", "debug")]
+    $Configuration = "debug",
+
+    [Parameter(Mandatory=$false)]
+    [String]$NugetAPIKey,
+
+    [Parameter(Mandatory=$false)]
+    [Switch]$ExportAlias
 )
 
 task Init {
+    
     Write-Verbose -Message "Initializing Module PSScriptAnalyzer"
-    if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)){
+
+    if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)) {
         Write-Warning "Module 'PSScriptAnalyzer' is missing or out of date. Installing module now."
         Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
     }
 
     Write-Verbose -Message "Initializing Module Pester"
-    if (-not(Get-Module -Name Pester -ListAvailable)){
+    if (-not(Get-Module -Name Pester -ListAvailable)) {
         Write-Warning "Module 'Pester' is missing or out of date. Installing module now."
         Install-Module -Name Pester -Scope CurrentUser -Force
     }
 
     Write-Verbose -Message "Initializing platyPS"
-    if (-not(Get-Module -Name platyPS -ListAvailable)){
+    if (-not(Get-Module -Name platyPS -ListAvailable)) {
         Write-Warning "Module 'platyPS' is missing or out of date. Installing module now."
         Install-Module -Name platyPS -Scope CurrentUser -Force
     }
 
-    Write-Verbose -Message "Initializing pPowerShellGet"
+    Write-Verbose -Message "Initializing PowerShellGet"
     if (-not(Get-Module -Name PowerShellGet -ListAvailable)){
         Write-Warning "Module 'PowerShellGet' is missing or out of date. Installing module now."
         Install-Module -Name PowerShellGet -Scope CurrentUser -Force
@@ -43,7 +50,7 @@ task Test {
 
     Write-Verbose -Message "Running Pester Tests"
     $Results = Invoke-Pester -Script ".\Tests\*.ps1" -OutputFormat NUnitXml -OutputFile ".\Tests\TestResults.xml"
-    if($Results.FailedCount -gt 0){
+    if($Results.FailedCount -gt 0) {
         throw "$($Results.FailedCount) Tests failed"
     }
 }
@@ -67,7 +74,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
         Write-Verbose "ModuleVersion found from psd file: $ModuleVersion"
     }
 
-    if(Test-Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)"){
+    if(Test-Path ".\Output\temp\$($ModuleName)\$($ModuleVersion)") {
         Write-Warning -Message "Version: $($ModuleVersion) - folder was detected in .\Output\temp\$($ModuleName). Removing old temp folder."
         Remove-Item ".\Output\temp\$($ModuleName)\$($ModuleVersion)" -Recurse -Force
     }
@@ -108,7 +115,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
     Write-Verbose -Message "Building the .psm1 file"
     Write-Verbose -Message "Appending Public Functions"
     Add-Content -Path $ModuleFile -Value "### --- PUBLIC FUNCTIONS --- ###"
-    foreach($function in $publicFunctions.Name){
+    foreach($function in $publicFunctions.Name) {
         try {
             Write-Verbose -Message "Updating the .psm1 file with function: $($function)"
             $content = Get-Content -Path ".\Source\Public\$($function)"
@@ -143,7 +150,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
 
     Write-Verbose -Message "Appending Private functions"
     Add-Content -Path $ModuleFile -Value "### --- PRIVATE FUNCTIONS --- ###"
-    foreach($function in $privateFunctions.Name){
+    foreach($function in $privateFunctions.Name) {
         try {
             Write-Verbose -Message "Updating the .psm1 file with function: $($function)"
             $content = Get-Content -Path ".\Source\Private\$($function)"
@@ -157,7 +164,7 @@ task DebugBuild -if ($Configuration -eq "debug") {
     }
 }
 
-task Build -if($Configuration -eq "Release"){
+task Build -if($Configuration -eq "Release") {
     $Script:ModuleName = (Test-ModuleManifest -Path ".\Source\*.psd1").Name
     Write-Verbose $ModuleName
     if(Test-Path ".\Output\$($ModuleName)") {
@@ -222,6 +229,7 @@ task Build -if($Configuration -eq "Release"){
     catch {
         throw "Failed updating Module manifest with public functions"
     }
+
     $ModuleFile = ".\Output\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psm1"
     Write-Verbose -Message "Building the .psm1 file"
     Write-Verbose -Message "Appending Public Functions"
@@ -261,7 +269,7 @@ task Build -if($Configuration -eq "Release"){
 
     Write-Verbose -Message "Appending Private functions"
     Add-Content -Path $ModuleFile -Value "### --- PRIVATE FUNCTIONS --- ###"
-    foreach($function in $privateFunctions.Name){
+    foreach($function in $privateFunctions.Name) {
         try {
             Write-Verbose -Message "Updating the .psm1 file with function: $($function)"
             $content = Get-Content -Path ".\Source\Private\$($function)"
@@ -306,7 +314,6 @@ task Build -if($Configuration -eq "Release"){
         }
     }
 
-
 }
 
 
@@ -321,14 +328,26 @@ task Publish -if($Configuration -eq "Release"){
 
     Write-Verbose -Message "Publishing Module to PowerShell gallery"
     Write-Verbose -Message "Importing Module .\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
-    Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1"
+
+    # fixed Publish-Module : The specified module 'xxx' with version '0.1.12' was not published 
+    # because no module with that name and version was found in any module directory.
+    $env:PSModulePath = $env:PSModulePath + "$([System.IO.Path]::PathSeparator)$((resolve-path '.\Output\').Path)"
+
+    # try with force import
+    Import-Module ".\Output\$($ModuleName)\$ModuleVersion\$($ModuleName).psm1" -Force
+
     If((Get-Module -Name $ModuleName) -and ($NugetAPIKey)) {
         try {
+            Get-Module -ListAvailable $ModuleName
             write-Verbose -Message "Publishing Module: $($ModuleName)"
-            Publish-Module -Name $ModuleName -NuGetApiKey $NugetAPIKey
+            Publish-Module -Name $ModuleName -NuGetApiKey $NugetAPIKey -RequiredVersion $ModuleVersion
         }
         catch {
-            throw "Failed publishing module to PowerShell Gallery"
+
+            # this is very general error and not able to identify the cause why publish was not success
+            # throw "Failed publishing module to PowerShell Gallery"
+
+            throw
         }
     }
     else {
