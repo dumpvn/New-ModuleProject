@@ -274,6 +274,15 @@ task Build -if($Configuration -eq "Release"){
         }
     }
 
+    Write-Verbose -Message "Updating Module Manifest with root module"
+    try {
+        Write-Verbose -Message "Updating the Module Manifest"
+        Update-ModuleManifest -Path ".\Output\$($ModuleName)\$($ModuleVersion)\$($ModuleName).psd1" -RootModule "$($ModuleName).psm1"
+    }
+    catch {
+        Write-Warning -Message "Failed appinding the rootmodule to the Module Manifest"
+    }
+
     Write-Verbose -Message "Compiling Help files"
     Write-Verbose -Message "Importing the module to be able to output documentation"
     Try {
