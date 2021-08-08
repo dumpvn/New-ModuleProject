@@ -23,7 +23,7 @@ task Init {
         Install-Module -Name platyPS -Scope CurrentUser -Force
     }
 
-    Write-Verbose -Message "Initializing pPowerShellGet"
+    Write-Verbose -Message "Initializing PowerShellGet"
     if (-not(Get-Module -Name PowerShellGet -ListAvailable)){
         Write-Warning "Module 'PowerShellGet' is missing or out of date. Installing module now."
         Install-Module -Name PowerShellGet -Scope CurrentUser -Force
