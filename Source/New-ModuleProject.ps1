@@ -95,7 +95,7 @@ Parameter which will tricker installing of several modules:
 Parameter which will tricker the creation of the Module folder structure.
 .PARAMETER Scripts
 Parameter which will tricker the download of the default build script from:
-https://raw.githubusercontent.com/ScriptingChris/New-ModuleProject/main/Source/build.ps1
+https://raw.githubusercontent.com/dumpvn/New-ModuleProject/main/Source/build.ps1
 .INPUTS
 N/A
 .OUTPUTS
@@ -103,7 +103,6 @@ N/A
 .NOTES
 N/A
 #>
-
 
 Param(
     [Parameter(Mandatory=$True)][String]$Path,

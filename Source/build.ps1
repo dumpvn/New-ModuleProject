@@ -1,9 +1,11 @@
+[CmdletBinding()]
 param (
+    [Parameter()]
     [ValidateSet("Release", "debug")]
     $Configuration = "debug",
 
     [Parameter(Mandatory=$false)]
-    [String]$NugetAPIKey,
+    [String]$NugetAPIKey = ((kp show powershell-gallery-api-key).Password),
 
     [Parameter(Mandatory=$false)]
     [Switch]$ExportAlias
@@ -13,7 +15,7 @@ task Init {
     
     Write-Verbose -Message "Initializing Module PSScriptAnalyzer"
 
-    if (-not(Get-Module -Name PSScriptAnalyzer -ListAvailable)) {
+    if (-not (Get-Module -Name PSScriptAnalyzer -ListAvailable)) {
         Write-Warning "Module 'PSScriptAnalyzer' is missing or out of date. Installing module now."
         Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
     }
@@ -21,11 +23,11 @@ task Init {
     Write-Verbose -Message "Initializing Module Pester"
     if (-not(Get-Module -Name Pester -ListAvailable)) {
         Write-Warning "Module 'Pester' is missing or out of date. Installing module now."
-        Install-Module -Name Pester -Scope CurrentUser -Force
+        Install-Module -Name Pester -RequiredVersion 4.10.1 -Scope CurrentUser -Force
     }
 
     Write-Verbose -Message "Initializing platyPS"
-    if (-not(Get-Module -Name platyPS -ListAvailable)) {
+    if (-not (Get-Module -Name platyPS -ListAvailable)) {
         Write-Warning "Module 'platyPS' is missing or out of date. Installing module now."
         Install-Module -Name platyPS -Scope CurrentUser -Force
     }
